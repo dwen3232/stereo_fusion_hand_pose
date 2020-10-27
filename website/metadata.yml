@@ -1,0 +1,16 @@
+---
+:id: 46996909
+:submitters:
+- :name: Avinash Vemuri
+  :email: avemuri7@gatech.edu
+- :name: Tan Gemicioglu
+  :email: tgemici@gatech.edu
+- :name: David R Wen
+  :email: dwen3232@gatech.edu
+:created_at: !ruby/object:ActiveSupport::TimeWithZone
+  utc: 2020-10-02 02:40:37.370504000 Z
+  zone: !ruby/object:ActiveSupport::TimeZone
+    name: America/Los_Angeles
+  time: 2020-10-01 19:40:37.370504000 Z
+:status: processed
+:score: 100.0

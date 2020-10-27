@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head>  
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <title>Computer Vision Class Project
+  | ECE, Virginia Tech | Fall 2015: ECE 5554/4984</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+<!-- Le styles -->  
+  <link href="css/bootstrap.css" rel="stylesheet">
+<style>
+body {
+padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+}
+.vis {
+color: #3366CC;
+}
+.data {
+color: #FF9900;
+}
+</style>
+  
+<link href="css/bootstrap-responsive.min.css" rel="stylesheet">
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements --><!--[if lt IE 9]>
+<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+</head>
+
+<body>
+<div class="container">
+<div class="page-header">
+
+<!-- Title and Name --> 
+<h1>Hand Pose Estimation by Fusion of Multi-View Images</h1> 
+<span style="font-size: 20px; line-height: 1.5em;"><strong>Avinash Vemuri, David Wen, Tan Gemicioglu</strong></span><br>
+<span style="font-size: 18px; line-height: 1.5em;">Fall 2020 CS4476 Project</span><br>
+<span style="font-size: 18px; line-height: 1.5em;">Georgia Tech</span>
+<hr>
+
+<!-- Statement -->
+<h3>Problem Statement</h3>
+The goal of the project is to estimate hand poses that can be used for hand tracking and gesture recognition using a keypoint-based approach with multi-view RGB images. The input to the system will be multi-view images taken at the same time, either from a stereo camera or two cameras with the same settings. The output will be the hand pose using the 21 keypoints (center of palm and finger joints).
+
+<br><br>
+
+<!-- Approach -->
+<h3>Approach</h3>
+
+Using the stereo RGB dataset used by J.Zhang et al. in [1],  the stereo images will be inputted into a CNN that produces probability maps of possible UV keypoint coordinates for both images, which will be fused early in the CNN and followed by another convolutional layer that generates XYZ coordinates for the keypoints.  The generated XYZ coordinates and their projections onto the 2D views will be used to calculate the error of the model, as done in [3], where the model is penalized by the keypoints, keypoint projections, and locality.
+<div style="text-align: center;"><img style="height: 300px;" alt="" src="./hand.PNG"></div>
+  
+<br><br>
+<!-- Experiment and Results -->
+<h3>Experiment and Results</h3>
+
+We will be using the dataset provided in source [1]. The data set is made up of 18,000 stereo image pairs and 18,000 depth images taken in different scenarios and the ground-truth 3D positions of the palm and finger joints. We will be using the stereo image pairs for our training. Since we have this dataset available to us, we don’t plan to do any experiments of our own.
+We’ll be exploiting the neural network architectures and approaches from [1] and [3], combining the ideas to get a more accurate hand pose. Since the source code for these projects is not available at the moment, we’ll have to implement these from scratch. We will use OpenCV for preprocessing and Tensorflow for our implementation of the CNN. 
+The success criteria for our project would be to get more accurate hand poses than [1] since it was the original paper that the dataset was prepared with. While this result wouldn’t necessarily be generalizable, finding new paths for getting more accurate hand poses with multi-view approaches would allow for future work to establish how it performs with different environments, cameras and hands.
+
+<br><br>
+
+<h3>References</h3>
+<ol>
+  <li>
+     <p>J. Zhang, J. Jiao, M. Chen, L. Qu, X. Xu, and Q. Yang, “3D Hand Pose Tracking and Estimation Using Stereo Matching,” <cite><a href="http://arxiv.org/abs/1610.07214">arXiv:1610.07214</a></cite> [cs], Oct. 2016.</p>
+  </li>
+  <li>
+     <p>B. Doosti, “Hand Pose Estimation: A Survey,” <cite><a href="http://arxiv.org/abs/1903.01013">arXiv:1903.01013</a></cite> [cs], Jun. 2019.</p>
+  </li>
+  <li>
+     <p>X. Liu, R. Jonschkowski, A. Angelova, and K. Konolige, “KeyPose: Multi-View 3D Labeling and Keypoint Estimation for Transparent Objects,” <cite><a href="http://arxiv.org/abs/1912.02805">arXiv:1912.02805</a></cite> [cs], May 2020..</p>
+  </li>
+</ol>
+
+
+
+
+
+
+</body></html>
