@@ -2,3 +2,4 @@
 .vscode/
 data/images
 data/labels
+__pycache__
