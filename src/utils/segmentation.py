@@ -36,7 +36,7 @@ def skin_color_mask_from_YCRCB(ycrcb):
     return cr_mask & cb_mask
 
 def skin_color_mask(img):
-    # input should be bgr image
+    # input should be BGR image
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
@@ -47,21 +47,27 @@ def skin_color_mask(img):
 
     return rgb_mask & hsv_mask & ycrcb_mask
 
+def apply_skin_color_mask(img):
+    # input should be BGR image
+    mask = skin_color_mask(img)
+    return mask.astype(np.uint8)[:,:,np.newaxis] * img
+
 def main():
-    data_path = '.\data'
-    B1_path = os.path.join(data_path, 'images\B1Counting')
+    data_path = '../../data'
+    B1_path = os.path.join(data_path, 'images/B1Counting')
     img = cv2.imread(os.path.join(B1_path, sys.argv[1]), 1)
 
-    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    rgb_norm_img = normalizedRGB(rgb_img)
-    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
+    # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # rgb_norm_img = normalizedRGB(rgb_img)
+    # hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    # ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
 
     img_mask = skin_color_mask(img)
-
+    applied_mask = apply_skin_color_mask(img)
 
     cv2.imshow('RGB', img)
     cv2.imshow('Skin Color Mask', img_mask.astype(float))
+    cv2.imshow('Applied Color Mask', applied_mask)
     # cv2.imshow('RGB Mask', rgb_mask.astype(float))
     # cv2.imshow('HSV Mask', hsv_mask.astype(float))
     # cv2.imshow('YCrCb Mask', ycrcb_mask.astype(float))
