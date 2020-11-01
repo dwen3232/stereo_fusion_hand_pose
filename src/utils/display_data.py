@@ -8,7 +8,7 @@ from matrices import P_matrix, apply_homogeneous_transform, reduce_homogeneous
 
 def circle_keypoints(img, keypoints):
 	# currently hardcoded; gonna change later
-	P = P_matrix(822.79041, 822.79041, 318.47345-120.054, 250.31296, 120.054)
+	P = P_matrix(822.79041, 822.79041, 318.47345, 250.31296, 120.054)
 	uvds = reduce_homogeneous(apply_homogeneous_transform(keypoints, P)).astype(int)
 	for i in range(uvds.shape[1]):
 		keypoint = uvds[:, i]
