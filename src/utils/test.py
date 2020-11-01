@@ -6,8 +6,13 @@ import numpy as np
 import cv2
 import scipy.io
 
+<<<<<<< HEAD:src/utils/test.py
 # quick test code 
 data_path = '../../data'
+=======
+# test code to display keypoints
+data_path = './data'
+>>>>>>> 8a28440e88dbe1545336588b7417b0d2672323ab:test.py
 mat_path = os.path.join(data_path, 'labels/B1Counting_BB.mat')
 B1_path = os.path.join(data_path, 'images/B1Counting')
 B1_mat = scipy.io.loadmat(mat_path)
