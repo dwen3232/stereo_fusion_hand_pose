@@ -6040,3 +6040,14 @@ a.badge:hover {
 .affix {
   position: fixed;
 }
+
+.row {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.column {
+  flex: 33.33%;
+  padding: 5px;
+}

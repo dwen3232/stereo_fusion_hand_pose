@@ -54,7 +54,7 @@ def apply_skin_color_mask(img):
 
 def main():
     data_path = '../../data'
-    B1_path = os.path.join(data_path, 'images/B1Counting')
+    B1_path = os.path.join(data_path, 'images/B6Counting')
     img = cv2.imread(os.path.join(B1_path, sys.argv[1]), 1)
 
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
