@@ -51,7 +51,7 @@ Hand pose estimation is an important application of computer vision used for ges
   <figcaption style="text-align: center;">Fig 1. Architecture for proposed stereo fusion based hand pose estimation model.</figcaption>
 </figure>
 <!-- <div style="text-align: center;"><img style="height: 300px;" alt="" src="./images/stereo_fusion2.png"></div> -->
-<br>
+<br><br>
 
 <!-- Introduction -->
 <h3>Introduction</h3>
@@ -59,10 +59,13 @@ Hand pose estimation is an important application of computer vision used for ges
   <img style="height: 300px; " alt="" src="./images/joints.png">
   <figcaption style="text-align: center;">Fig 2. Visual of keypoint hand model with 14, 16, and 21 joints.</figcaption>
 </figure>
-
+<br>
 Estimating and tracking hand poses has been one of the most critical tools for following human activity in human computer interaction since it became viable. It’s been used for tracking motion in videos, sign language recognition and as input systems for virtual and augmented reality [1]. Especially with developments in virtual reality, it has become more and more important to be able to recognize hands and estimate their poses with consumer-level hardware.
+<br><br>
 The goal of hand pose estimation is to find a number of keypoints marking important spots on the hand. There are different models for the joints of the hand with varying number of keypoints but the 21-joint model is currently the most commonly used approach. A good hand pose estimation allows for stable, accurate and consistent models for gesture recognition and hand tracking.
+<br><br>
 After starting with RGB images, substantial improvements have been made by using RGBD cameras which include depth maps in addition to the colors. However, these instruments are more expensive than traditional RGB cameras and can be difficult to set up. As an alternative, improvements in the field of object recognition have shown that it is possible to estimate depth in images using stereoscopic 3D effects [3]. Some recent attempts have shown that this usage of stereoscopic vision performs successfully when it comes to hand pose estimation as well [2].
+<br><br>
 We build on previous work in estimating hand poses using stereoscopic vision by utilizing a new kind of image fusing technique that happens at an early stage in the neural network as an alternative to traditional late geometric fusion. This new fusion technique allows more information to be used from both images used as an input by leaving the judgement of how it should combine the two to the neural network.
 
 
@@ -71,36 +74,36 @@ We build on previous work in estimating hand poses using stereoscopic vision by 
   <figcaption style="text-align: center;">Fig 3. Hands with keypoints and visualized hand model.</figcaption>
 </figure>
 
+<br><br>
 <!-- Approach -->
 <h3>Approach</h3>
 
 For our approach, the dataset from J. Zhang et al. in [2] is formatted to stereo image pairs with 21 UVD keypoints as labels.  Using the given camera calibration parameters and XYZ coordinate labels, the new UVD keypoints are created by projecting the XYZ keypoints onto the left image.  The existing approach by J. Zhang et al. uses an adaptive GNN trained on Google images to create a probability map from the left image, which they then use with the explicit disparity map to create a final hand segmentation map to estimate the hand pose keypoints.  
+<br><br>
 For our implementation, we preprocess the stereo images using the skin color segmentation method outlined by R. F. Rahmat et al. in [5], and instead of using an explicit disparity map, we perform early fusion of the stereo images to let the deep CNN implicitly determine disparity.  The deep CNN generates 21 probability maps for each keypoint, from which an integral image is computed to determine optimal UVD keypoints.  
-
-
 <br><br>
 For the training of the model, we use the three loss functions as shown in the figure below.
-<br><br>
+<br>
 <figure>
   <img style="height: 200px;" alt="" src="./images/loss.png">
   <figcaption style="text-align: center;">Fig 4. Loss function proposed by X. Liu et al. in [3]</figcaption>
 </figure>
 <br>
 The first term is the traditional loss function, where the error is the squared error between the computed UVD and the labeled UVD.  The second term is the squared error between the reprojection of the predicted UVD keypoints and the labeled UVD keypoints.  The third term is the locality loss of the predicted UVD keypoints and the labeled UVD keypoints, using the inverse normal distribution centered at the labeled UVD and the probability of UVD in the generated probability map.  Optimal weights for the last two terms will be determined by future experimentation.
+
 <br><br>
-
-
 <!-- Experiment and Results -->
 <h3>Experiment and Results</h3>
+We used the dataset provided in source [2]. The data set is made up of 18,000 stereo image pairs and 18,000 depth images taken in 6 different scenarios and the ground-truth 3D positions of the palm and finger joints.  Currently, the deep CNN model is a work in progress, so we do not have any numerical results or metrics.  In the future, we plan on testing our models reliability in placing keypoints on hands in a variety of backgrounds and lighting. 
+<br><br>
+For our future experimentation, we are planning on doing a traditional 60/20/20 split for the dataset with 60% in our training set, 20% in validation, and 20% in testing. Additionally, we believe it will be a useful experiment for generalization to use the 6 different background scenes in our dataset by doing 6-fold cross validation with training on 5 scenes and testing on 1 scene.
 
-We used the dataset provided in source [1]. The data set is made up of 18,000 stereo image pairs and 18,000 depth images taken in different scenarios and the ground-truth 3D positions of the palm and finger joints.  Currently, the deep CNN model is a work in progress, so we do not have any numerical results or metrics.  In the future, we plan on testing our models reliability in placing keypoints on hands in a variety of backgrounds and lighting.
 
 <br><br>
-
+<!-- Qualitative Results -->
 <h3>Qualitative Results</h3>
 For the preprocessing step, the results for the skin segmentation for select images in different environments are shown below:
 <br>
-
 <figure style="text-align: center;">
   <div class="row">
     <div class="column">
@@ -125,11 +128,20 @@ For the preprocessing step, the results for the skin segmentation for select ima
   <figcaption style="text-align: center;">Fig 5. Qualitative results from skin segmentation.</figcaption>
 </figure>
 
-
 <br>
-Currently, the skin segmentation method does not handle passive lighting very well (as shown in the third image in Fig 5.).  For the other environments, the hand is preserved fairly well.  Other skin features, such as the face of the researcher (in images 1-3 of Fig 5.) are moderately preserved and may affect the model, and additional preprocessing steps to remove the face may be beneficial.  Improvement via contour filling may improve the results, and are currently being worked on.
+Currently, the skin segmentation method does not handle passive lighting very well (as shown in the third image in Fig 5.).  For the other environments, the hand is preserved fairly well.  Other skin features, such as the face of the researcher (in images 1-3 of Fig 5.) are moderately preserved and may affect the model, and additional preprocessing steps to remove the face may be beneficial.  Common to all the skin segmentations is the abundance of holes and noise in the resultant images.  Further preprocessing steps to eliminate holes and noise from the binary image mask either through some combination of dilation and erosion or contour filling will be added to further improve the robustness of the segmentation in different backgrounds and lighting conditions.
 
+<br><br>
+<!-- Conclusion and Future Work  -->
+<h3>Conclusion and Future Work</h3>
+With this project, we investigated a stereoscopic vision alternative to the current dominant paradigms of single RGB or RGBD cameras in hand pose estimation. We made use of new ideas in object recognition that use neural networks instead of geometric calculation to gain more information from the stereoscopic fusion of two images. We hope that this approach will make techniques that utilize hand pose estimation more accessible by reducing the need for costly equipment and more accurate by utilizing stereoscopic information. 
+<br><br>
+At the moment, datasets for stereoscopic vision in hand pose estimation are very limited. For future work, larger datasets with more variation in scene as well as artificially generated images could help make better models. The dataset we used made use of a stereoscopic camera, which is a far more controlled condition than doing stereoscopic fusion for two different cameras. Cameras with varying degrees of overlap and different configurations would be useful in making it easier to deploy stereoscopic vision at the consumer level.
+<br><br>
+We also investigated different preprocessing techniques, and further work on different preprocessing approaches as well as neural network approaches could lead to further improvements in this area. Finally, we believe that the most critical improvement for hand pose estimation with stereoscopic vision would be in making models as light and fast as possible for them to work with real time videos across several cameras.
 
+<br><br>
+<!-- References -->
 <h3>References</h3>
 <ol>
   <li>
