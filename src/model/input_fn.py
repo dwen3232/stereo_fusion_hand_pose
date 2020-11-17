@@ -1,8 +1,8 @@
-import glob
 import tensorflow as tf
 import numpy as np
 import cv2
-from utils import segmentation as seg 
+from utils import segmentation as seg
+
 
 def _parse_function(left_name, right_name, label, size):
     ''' Parses left_name and right_name into decoded image tensors
@@ -25,7 +25,8 @@ def _parse_function(left_name, right_name, label, size):
     right_image = tf.cast(right_image, dtype=tf.uint8)
     return left_image, right_image, label
 
-# TODO
+# TODO doesn't really work properly; probably need to change segmentation
+# to tensorflow implementation
 def img_preprocess(left_image, right_image, label):
     ''' Preprocesses left and right images
 
@@ -64,18 +65,31 @@ def input_fn(left_names, right_names, labels, params):
     dataset = (tf.data.Dataset.from_tensor_slices((tf.constant(left_names), tf.constant(right_names), tf.constant(labels)))
         .shuffle(num_samples)
         .map(parse_fn)
-        .map(preprocess_fn)
+        # .map(preprocess_fn)
         .batch(params.batch_size)
         .prefetch(1)
     )
     return dataset
 
 def main():
+    import glob
+    import scipy.io
+    from utils.params import Param
+
     left_names = glob.glob('./data/images/B1Counting/BB_left_*')
+    print("left_names size: ", len(left_names))
     right_names = [s.replace('left', 'right') for s in left_names]
-    
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    print("right_names size: ", len(right_names))
+    # mat['handPara'] returns ndarray of shape (3, 21, 1500)
+    mat = scipy.io.loadmat('./data/labels/B1Counting_BB.mat')
+    labels = mat['handPara'].transpose((2, 0, 1))
+    print("Label shape: ", labels.shape)
+    params = Param('./data/params/model_params.json')
+    dataset = input_fn(left_names, right_names, labels, params)
+    it = iter(dataset)
+    print(it.next())
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()
