@@ -19,7 +19,7 @@ def main():
 	# sys.argv[1] should be something like 'B1Counting/BB_left_0.png'
 	head, img_name = os.path.split(sys.argv[1])
 	img_index = int(re.search(r'\d+', img_name).group(0))
-	data_path = '../../data'
+	data_path = './data'
 	left_image_path = os.path.join(data_path, 'images/' + sys.argv[1])
 	right_image_path = left_image_path.replace('left', 'right')
 	mat_name = head + '_' + img_name[:2] + '.mat' 

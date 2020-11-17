@@ -4,6 +4,8 @@ import glob
 import numpy as np
 import cv2
 
+# TODO replace with np implementation with tf implementation
+
 def normalizedRGB(rgb_image):
     # should have shape (R, C, 3)
     total = rgb_image.sum(axis=2)
@@ -53,9 +55,11 @@ def apply_skin_color_mask(img):
     return mask.astype(np.uint8)[:,:,np.newaxis] * img
 
 def main():
-    data_path = '../../data'
-    B1_path = os.path.join(data_path, 'images/B6Counting')
-    img = cv2.imread(os.path.join(B1_path, sys.argv[1]), 1)
+    # sys.argv[1] should be something like 'B1Counting/BB_left_0.png'
+    data_path = './data'
+    img_path = os.path.join(data_path, 'images/' + sys.argv[1])
+    img = cv2.imread(img_path, 1)
+
 
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # rgb_norm_img = normalizedRGB(rgb_img)
