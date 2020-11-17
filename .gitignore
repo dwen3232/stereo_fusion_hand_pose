@@ -1,5 +1,7 @@
 .venv/
 .vscode/
-src/data/images
-src/data/labels
+src/data/images/*
+src/data/labels/*
 __pycache__
+
+!.gitkeep
