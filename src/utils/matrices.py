@@ -28,8 +28,8 @@ def P_matrix(fx, fy, tx, ty, baseline):
 def apply_homogeneous_transform(coords, transformation):
     # coords in shape (4, N) or (3, N)
     # returns UVD in homogeneous form
-    assert transformation.shape == (4, 4), "transformation must be 4x4"
-    assert coords.shape[0] == 3 or coords.shape[0] == 4, "coords must be length 3 or 4 vectors"
+    assert transformation.shape == (4, 4), "transformation must be of shape (4, 4)"
+    assert coords.shape[0] == 3 or coords.shape[0] == 4, "axis 0 must have shape 3 or 4"
     if coords.shape[0] == 3:
         coords = np.append(coords, np.ones((1, coords.shape[1])), axis=0)
     return transformation.dot(coords)

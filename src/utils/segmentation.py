@@ -1,6 +1,6 @@
 import os
 import sys
-import glob
+import tensorflow as tf
 import numpy as np
 import cv2
 
@@ -12,6 +12,7 @@ def normalizedRGB(rgb_image):
     return rgb_image / total[:,:,np.newaxis]
 
 def skin_color_mask_from_RGB(normalized_rgb):
+    #
     r, g, b = normalized_rgb.transpose((2, 0, 1))
     r_over_g = r / g
     r_mul_b = r * b
@@ -22,6 +23,7 @@ def skin_color_mask_from_RGB(normalized_rgb):
     return mask_1
 
 def skin_color_mask_from_HSV(hsv):
+    # Input should be HSV image
     h, s, v = hsv.transpose((2,0,1))
     h = h * 2
     s = s / 255
@@ -32,6 +34,7 @@ def skin_color_mask_from_HSV(hsv):
     return h_mask & s_mask
 
 def skin_color_mask_from_YCRCB(ycrcb):
+    # Input should be ycrcb image
     y, cr, cb = ycrcb.transpose((2,0,1))
     cr_mask = (cr >= 133) & (cr <= 173)
     cb_mask = (cb >= 77) & (cb <= 127)
@@ -60,12 +63,10 @@ def main():
     img_path = os.path.join(data_path, 'images/' + sys.argv[1])
     img = cv2.imread(img_path, 1)
 
-
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # rgb_norm_img = normalizedRGB(rgb_img)
     # hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
-
     img_mask = skin_color_mask(img)
     applied_mask = apply_skin_color_mask(img)
 

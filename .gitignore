@@ -1,5 +1,5 @@
 .venv/
 .vscode/
-data/images
-data/labels
+src/data/images
+src/data/labels
 __pycache__

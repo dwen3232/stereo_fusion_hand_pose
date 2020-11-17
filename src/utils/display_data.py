@@ -6,7 +6,7 @@ import cv2
 import scipy.io
 from matrices import P_matrix, apply_homogeneous_transform, reduce_homogeneous
 
-def circle_uv_points(img, uvs):
+def _circle_uv_points(img, uvs):
 	# uv should be (2, N) array
 	
 	for i in range(uvs.shape[1]):
@@ -36,8 +36,8 @@ def main():
 	uvds[0] -= uvds[2]
 	right_uvs = uvds[:2].astype(int)
 
-	left_img_with_keypoints = circle_uv_points(left_img, left_uvs)
-	right_img_with_keypoints = circle_uv_points(right_img, right_uvs)
+	left_img_with_keypoints = _circle_uv_points(left_img, left_uvs)
+	right_img_with_keypoints = _circle_uv_points(right_img, right_uvs)
 
 	cv2.imshow('Left Image', left_img_with_keypoints)
 	cv2.imshow('Right Image', right_img_with_keypoints)
