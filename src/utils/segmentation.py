@@ -1,6 +1,6 @@
 import os
 import sys
-import tensorflow as tf
+# import tensorflow as tf
 import numpy as np
 import cv2
 
@@ -12,7 +12,7 @@ def normalizedRGB(rgb_image):
     return rgb_image / total[:,:,np.newaxis]
 
 def skin_color_mask_from_RGB(normalized_rgb):
-    #
+    # Input should be RGB image
     r, g, b = normalized_rgb.transpose((2, 0, 1))
     r_over_g = r / g
     r_mul_b = r * b
@@ -41,10 +41,11 @@ def skin_color_mask_from_YCRCB(ycrcb):
     return cr_mask & cb_mask
 
 def skin_color_mask(img):
-    # input should be BGR image
-    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
+    # Input should be BGR image
+    # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    rgb_img = img
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    ycrcb_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCR_CB)
 
     rgb_mask = skin_color_mask_from_RGB(normalizedRGB(rgb_img))
     hsv_mask = skin_color_mask_from_HSV(hsv_img)
@@ -52,7 +53,7 @@ def skin_color_mask(img):
 
     return rgb_mask & hsv_mask & ycrcb_mask
 
-def apply_skin_color_mask(img):
+def skin_segment(img):
     # input should be BGR image
     mask = skin_color_mask(img)
     return mask.astype(np.uint8)[:,:,np.newaxis] * img
@@ -62,17 +63,18 @@ def main():
     data_path = './data'
     img_path = os.path.join(data_path, 'images/' + sys.argv[1])
     img = cv2.imread(img_path, 1)
-
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # rgb_norm_img = normalizedRGB(rgb_img)
     # hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # ycrcb_img = cv2.cvtColor(img, cv2.COLOR_BGR2YCR_CB)
     img_mask = skin_color_mask(img)
-    applied_mask = apply_skin_color_mask(img)
+    applied_mask = skin_segment(img)
 
-    cv2.imshow('RGB', img)
+    cv2.imshow('RGB', cv2.cvtColor(img, cv2.COLOR_RGB2BGR))
+
     cv2.imshow('Skin Color Mask', img_mask.astype(float))
-    cv2.imshow('Applied Color Mask', applied_mask)
+    cv2.imshow('Applied Color Mask', cv2.cvtColor(applied_mask, cv2.COLOR_RGB2BGR))
     # cv2.imshow('RGB Mask', rgb_mask.astype(float))
     # cv2.imshow('HSV Mask', hsv_mask.astype(float))
     # cv2.imshow('YCrCb Mask', ycrcb_mask.astype(float))
