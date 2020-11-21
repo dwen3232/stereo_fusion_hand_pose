@@ -49,7 +49,7 @@ def input_fn(left_names, right_names, labels, params):
         Args:
             left_names: (list) names of left images
             right_names: (list) names of right images
-            labels: (ndarray) keypoint locations
+            labels: (list) keypoint locations {each element should be ndarray of (3, 21)}
             params: (Param) model params
     '''
     # currently used params: image_size, batch_size
@@ -62,6 +62,7 @@ def input_fn(left_names, right_names, labels, params):
     parse_fn = lambda l, r, o: _parse_function(l, r, o, params.image_size)
     preprocess_fn = lambda l, r, o: img_preprocess(l, r, o)
 
+    # this probably needs to be changed
     dataset = (tf.data.Dataset.from_tensor_slices((tf.constant(left_names), tf.constant(right_names), tf.constant(labels)))
         .shuffle(num_samples)
         .map(parse_fn)
