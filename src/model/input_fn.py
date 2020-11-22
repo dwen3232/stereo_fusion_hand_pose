@@ -25,8 +25,6 @@ def _parse_function(left_name, right_name, label, size):
     right_image = tf.cast(right_image, dtype=tf.uint8)
     return left_image, right_image, label
 
-# TODO doesn't really work properly; probably need to change segmentation
-# to tensorflow implementation
 def img_preprocess(left_image, right_image, label):
     ''' Preprocesses left and right images
 
@@ -52,7 +50,7 @@ def input_fn(left_names, right_names, labels, params):
         Args:
             left_names: (list) names of left images
             right_names: (list) names of right images
-            labels: (list) keypoint locations {each element should be ndarray of (3, 21)}
+            labels: (ndarray) keypoint locations -- shape should be (N, 3, 21)
             params: (Param) model params
     '''
     # currently used params: image_size, batch_size
