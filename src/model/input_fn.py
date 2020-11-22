@@ -35,8 +35,11 @@ def img_preprocess(left_image, right_image, label):
             right_name: (tensor) right_image of type uint8
             label: (ndarray) keypoint locations
     '''
-    left_image = seg.skin_segment(left_image)
-    right_image = seg.skin_segment(right_image)
+    left_image = tf.image.random_brightness(left_image, max_delta=32.0 / 255.0)
+    left_image = tf.image.random_brightness(left_image, max_delta=32.0 / 255.0)
+
+    left_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
+    left_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
 
     return left_image, right_image, label
 
@@ -63,7 +66,7 @@ def input_fn(left_names, right_names, labels, params):
     preprocess_fn = lambda l, r, o: img_preprocess(l, r, o)
 
     # this probably needs to be changed
-    dataset = (tf.data.Dataset.from_tensor_slices((tf.constant(left_names), tf.constant(right_names), tf.constant(labels)))
+    dataset = (tf.data.Dataset.from_tensor_slices((tf.constant(left_names), tf.constant(right_names), tf.convert_to_tensor(labels)))
         .shuffle(num_samples)
         .map(parse_fn)
         # .map(preprocess_fn)
@@ -85,12 +88,15 @@ def main():
     mat = scipy.io.loadmat('./data/labels/B1Counting_BB.mat')
     labels = mat['handPara'].transpose((2, 0, 1))
     print("Label shape: ", labels.shape)
-    params = Param('./data/params/model_params.json')
+    params = Param('./data/params/model/params.json')
     dataset = input_fn(left_names, right_names, labels, params)
     it = iter(dataset)
-    print(it.next())
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    test_img = it.next()[0][0].numpy()
+    seg_img = seg.skin_segment(test_img)
+    cv2.imshow('Test Image', test_img)
+    cv2.imshow('Seg Image', seg_img)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

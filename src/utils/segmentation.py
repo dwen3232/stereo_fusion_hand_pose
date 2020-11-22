@@ -1,6 +1,6 @@
 import os
 import sys
-# import tensorflow as tf
+import tensorflow as tf
 import numpy as np
 import cv2
 
@@ -41,9 +41,10 @@ def skin_color_mask_from_YCRCB(ycrcb):
     return cr_mask & cb_mask
 
 def skin_color_mask(img):
-    # Input should be BGR image
+    # Input should be RGB image
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     rgb_img = img
+    print(img.shape, img.dtype)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     ycrcb_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCR_CB)
 
@@ -54,7 +55,7 @@ def skin_color_mask(img):
     return rgb_mask & hsv_mask & ycrcb_mask
 
 def skin_segment(img):
-    # input should be BGR image
+    # input should be RGB image
     mask = skin_color_mask(img)
     return mask.astype(np.uint8)[:,:,np.newaxis] * img
 
@@ -64,6 +65,7 @@ def main():
     img_path = os.path.join(data_path, 'images/' + sys.argv[1])
     img = cv2.imread(img_path, 1)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    print(img.shape, img.dtype)
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # rgb_norm_img = normalizedRGB(rgb_img)
     # hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
