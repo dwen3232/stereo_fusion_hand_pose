@@ -35,9 +35,11 @@ def img_preprocess(left_image, right_image, label):
     '''
     left_image = tf.image.random_brightness(left_image, max_delta=32.0 / 255.0)
     left_image = tf.image.random_brightness(left_image, max_delta=32.0 / 255.0)
-
-    left_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
-    left_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
+    left_image = tf.numpy_function(func=seg.skin_segment, inp=[left_image], Tout=[tf.uint8])[0]
+    
+    right_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
+    right_image = tf.image.random_brightness(right_image, max_delta=32.0 / 255.0)
+    right_image = tf.numpy_function(func=seg.skin_segment, inp=[right_image], Tout=[tf.uint8])[0]
 
     return left_image, right_image, label
 
@@ -63,11 +65,10 @@ def input_fn(left_names, right_names, labels, params):
     parse_fn = lambda l, r, o: _parse_function(l, r, o, params.image_size)
     preprocess_fn = lambda l, r, o: img_preprocess(l, r, o)
 
-    # this probably needs to be changed
     dataset = (tf.data.Dataset.from_tensor_slices((tf.constant(left_names), tf.constant(right_names), tf.convert_to_tensor(labels)))
         .shuffle(num_samples)
         .map(parse_fn)
-        # .map(preprocess_fn)
+        .map(preprocess_fn)
         .batch(params.batch_size)
         .prefetch(1)
     )
@@ -89,10 +90,15 @@ def main():
     params = Param('./data/params/model/params.json')
     dataset = input_fn(left_names, right_names, labels, params)
     it = iter(dataset)
-    test_img = it.next()[0][0].numpy()
-    seg_img = seg.skin_segment(test_img)
-    cv2.imshow('Test Image', test_img)
-    cv2.imshow('Seg Image', seg_img)
+    next = it.next()
+    left_img = next[0][0].numpy()
+    right_img = next[1][0].numpy()
+    # print(next)
+    print('test image: ', left_img.shape, left_img.dtype)
+    print('right image: ', right_img.shape, right_img.dtype)
+
+    cv2.imshow('Left Image', left_img)
+    cv2.imshow('Right Image', right_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 

@@ -9,12 +9,12 @@ import cv2
 def normalizedRGB(rgb_image):
     # should have shape (R, C, 3)
     total = rgb_image.sum(axis=2)
-    return rgb_image / total[:,:,np.newaxis]
+    return rgb_image / (total[:,:,np.newaxis] + 1e-8)
 
 def skin_color_mask_from_RGB(normalized_rgb):
     # Input should be RGB image
     r, g, b = normalized_rgb.transpose((2, 0, 1))
-    r_over_g = r / g
+    r_over_g = r / (g + 1e-8)
     r_mul_b = r * b
     r_mul_g = r * g
     mask_1 = (r_over_g > 1.185)
@@ -44,7 +44,7 @@ def skin_color_mask(img):
     # Input should be RGB image
     # rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     rgb_img = img
-    print(img.shape, img.dtype)
+    # print("INPUT SHAPE", img.shape, img.dtype)
     hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     ycrcb_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCR_CB)
 

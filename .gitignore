@@ -2,6 +2,7 @@
 .vscode/
 src/data/images/*
 src/data/labels/*
+src/data/tfrecords/B1Counting/*
 __pycache__
 
 !.gitkeep
