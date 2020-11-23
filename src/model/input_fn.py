@@ -77,6 +77,7 @@ def input_fn(left_names, right_names, labels, params):
 def main():
     import glob
     import scipy.io
+    import imageio
     from utils.params import Param
 
     left_names = glob.glob('./data/images/B1Counting/BB_left_*')
@@ -90,17 +91,21 @@ def main():
     params = Param('./data/params/model/params.json')
     dataset = input_fn(left_names, right_names, labels, params)
     it = iter(dataset)
-    next = it.next()
-    left_img = next[0][0].numpy()
-    right_img = next[1][0].numpy()
-    # print(next)
-    print('test image: ', left_img.shape, left_img.dtype)
-    print('right image: ', right_img.shape, right_img.dtype)
+    for count in range(len(left_names)):
+        next = it.next()
+        left_img = next[0][0].numpy()
+        right_img = next[1][0].numpy()
+        imageio.imwrite("prep_img/"+str(count)+".png",left_img)
+        imageio.imwrite("prep_img/"+str(count)+".png",right_img)
+    
+    # # print(next)
+    # print('test image: ', left_img.shape, left_img.dtype)
+    # print('right image: ', right_img.shape, right_img.dtype)
 
-    cv2.imshow('Left Image', left_img)
-    cv2.imshow('Right Image', right_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    # cv2.imshow('Left Image', left_img)
+    # cv2.imshow('Right Image', right_img)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()

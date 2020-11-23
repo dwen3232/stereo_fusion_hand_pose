@@ -34,7 +34,7 @@ import imageio
 import sys
 import tensorflow as tf
 import tf_slim as slim
-import utils
+import utils.mainutil as utils
 
 FLAGS = tf.compat.v1.app.flags.FLAGS
 
@@ -48,8 +48,8 @@ tf.compat.v1.app.flags.DEFINE_string(
     "dset",
     "",
     "Path to the directory containing the dataset.")
-tf.compat.v1.app.flags.DEFINE_integer("steps", 200000, "Training steps")
-tf.compat.v1.app.flags.DEFINE_integer("batch_size", 8, "Size of mini-batch.")
+tf.compat.v1.app.flags.DEFINE_integer("steps", 2000, "Training steps")
+tf.compat.v1.app.flags.DEFINE_integer("batch_size", 64, "Size of mini-batch.")
 tf.compat.v1.app.flags.DEFINE_string(
     "hparams", "",
     "A comma-separated list of `name=value` hyperparameter values. This flag "
@@ -60,7 +60,8 @@ tf.compat.v1.app.flags.DEFINE_integer(
     "If > 0, use SyncReplicasOptimizer and use this many replicas per sync.")
 
 # Fixed input size 128 x 128.
-vw = vh = 128
+vw = 64
+vh = 64
 
 
 def create_input_fn(split, batch_size):
@@ -111,23 +112,24 @@ def create_input_fn(split, batch_size):
           features={
               "img0": tf.io.FixedLenFeature([], tf.string),
               "img1": tf.io.FixedLenFeature([], tf.string),
-              "mv0": tf.io.FixedLenFeature([16], tf.float32),
-              "mvi0": tf.io.FixedLenFeature([16], tf.float32),
-              "mv1": tf.io.FixedLenFeature([16], tf.float32),
-              "mvi1": tf.io.FixedLenFeature([16], tf.float32),
+              "keypoints": tf.io.FixedLenFeature([63], tf.float32)
+              # "mv0": tf.io.FixedLenFeature([16], tf.float32),
+              # "mvi0": tf.io.FixedLenFeature([16], tf.float32),
+              # "mv1": tf.io.FixedLenFeature([16], tf.float32),
+              # "mvi1": tf.io.FixedLenFeature([16], tf.float32),
           })
 
-      fs["img0"] = tf.compat.v1.div(tf.cast(tf.image.decode_png(fs["img0"], 4), dtype=tf.float32), 255)
-      fs["img1"] = tf.compat.v1.div(tf.cast(tf.image.decode_png(fs["img1"], 4), dtype=tf.float32), 255)
+      fs["img0"] = tf.compat.v1.div(tf.cast(tf.image.decode_png(fs["img0"], 3), dtype=tf.float32), 255)
+      fs["img1"] = tf.compat.v1.div(tf.cast(tf.image.decode_png(fs["img1"], 3), dtype=tf.float32), 255)
 
-      fs["img0"].set_shape([vh, vw, 4])
-      fs["img1"].set_shape([vh, vw, 4])
+      fs["img0"].set_shape([vh, vw, 3])
+      fs["img1"].set_shape([vh, vw, 3])
 
       # fs["lr0"] = [fs["mv0"][0]]
       # fs["lr1"] = [fs["mv1"][0]]
 
-      fs["lr0"] = tf.convert_to_tensor(value=[fs["mv0"][0]])
-      fs["lr1"] = tf.convert_to_tensor(value=[fs["mv1"][0]])
+      # fs["lr0"] = tf.convert_to_tensor(value=[fs["mv0"][0]])
+      # fs["lr1"] = tf.convert_to_tensor(value=[fs["mv1"][0]])
 
       return fs
 
@@ -175,7 +177,7 @@ class Transformer(object):
     """Projects homogeneous 3D coordinates to normalized device coordinates."""
 
     z = xyzw[:, :, 2:3] + 1e-8
-    return tf.concat([-self.f * xyzw[:, :, :2] / z, z], axis=2)
+    return tf.concat([-self.f * xyzw[:, :, :3] / z, z], axis=2)
 
   def unproject(self, xyz):
     """Unprojects normalized device coordinates with depth to 3D coordinates."""
@@ -348,7 +350,7 @@ def dilated_cnn(images, num_filters, is_training):
       normalizer_fn=slim.batch_norm,
       activation_fn=lambda x: tf.nn.leaky_relu(x, alpha=0.1),
       normalizer_params={"is_training": is_training}):
-    for i, r in enumerate([1, 1, 2, 4, 8, 16, 1, 2, 4, 8, 16, 1]):
+    for i, r in enumerate([1, 1, 2, 4, 8, 16, 1]):
       net = slim.conv2d(net, num_filters, [3, 3], rate=r, scope="dconv%d" % i)
 
   return net
@@ -417,7 +419,7 @@ def keypoint_network(rgba,
 
   """
 
-  images = rgba[:, :, :, :3]
+  images = rgba
 
   # [batch, 1]
   orient = orientation_network(images, num_filters * 0.5, is_training)
@@ -437,7 +439,7 @@ def keypoint_network(rgba,
 
   images = tf.concat([images, lrtiled], axis=3)
 
-  mask = rgba[:, :, :, 3]
+  mask = rgba[:, :, :, 2]
   mask = tf.cast(tf.greater(mask, tf.zeros_like(mask)), dtype=tf.float32)
 
   net = dilated_cnn(images, num_filters, is_training)
@@ -489,19 +491,17 @@ def model_fn(features, labels, mode, hparams):
   def func1(x):
     return tf.transpose(a=tf.reshape(features[x], [-1, 4, 4]), perm=[0, 2, 1])
 
-  mv = [func1("mv%d" % i) for i in range(2)]
-  mvi = [func1("mvi%d" % i) for i in range(2)]
+  # mv = [func1("mv%d" % i) for i in range(2)]
+  # mvi = [func1("mvi%d" % i) for i in range(2)]
 
   uvz = [None] * 2
-  uvz_proj = [None] * 2  # uvz coordinates projected on to the other view.
+  # uvz_proj = [None] * 2  # uvz coordinates projected on to the other view.
   viz = [None] * 2
   vizs = [None] * 2
 
-  loss_sill = 0
-  loss_variance = 0
-  loss_con = 0
-  loss_sep = 0
-  loss_lr = 0
+  # loss_sill = 0
+  loss_key = 0
+
 
   for i in range(2):
     with tf.compat.v1.variable_scope("KeypointNetwork", reuse=i > 0):
@@ -515,56 +515,39 @@ def model_fn(features, labels, mode, hparams):
           hparams["num_filters"],
           hparams["num_kp"],
           is_training,
-          lr_gt=features["lr%d" % i],
+          lr_gt=None,
           anneal=anneal)
 
       # x-positive/negative axes (dominant direction).
-      xp_axis = tf.tile(
-          tf.constant([[[1.0, 0, 0, 1], [-1.0, 0, 0, 1]]]),
-          [tf.shape(input=orient)[0], 1, 1])
+      # xp_axis = tf.tile(
+      #     tf.constant([[[1.0, 0, 0, 1], [-1.0, 0, 0, 1]]]),
+      #     [tf.shape(input=orient)[0], 1, 1])
 
       # [batch, 2, 4]  = [batch, 2, 4] x [batch, 4, 4]
-      xp = tf.matmul(xp_axis, mv[i])
+      # xp = tf.matmul(xp_axis, mv[i])
 
       # [batch, 2, 3]
-      xp = t.project(xp)
+      # xp = t.project(xp)
 
-      loss_lr += tf.compat.v1.losses.mean_squared_error(orient[:, :, :2], xp[:, :, :2])
-      loss_variance += variance
-      loss_sill += sill
-
+      # loss_lr += tf.compat.v1.losses.mean_squared_error(orient[:, :, :2], xp[:, :, :2])
       uv = tf.reshape(uv, [-1, hparams["num_kp"], 2])
       z = tf.reshape(z, [-1, hparams["num_kp"], 1])
 
       # [batch, num_kp, 3]
       uvz[i] = tf.concat([uv, z], axis=2)
 
-      world_coords = tf.matmul(t.unproject(uvz[i]), mvi[i])
+      # world_coords = tf.matmul(t.unproject(uvz[i]), mvi[i])
 
       # [batch, num_kp, 3]
-      uvz_proj[i] = t.project(tf.matmul(world_coords, mv[1 - i]))
+      # uvz_proj[i] = t.project(tf.matmul(world_coords, mv[1 - i]))
 
+  xyz_pr = tf.reshape(t.unproject(uvz[0])[:,:,:3], [-1,3*hparams["num_kp"]])
+  loss_key += tf.compat.v1.losses.mean_squared_error(features["keypoints"], xyz_pr)
   pconf = tf.ones(
       [tf.shape(input=uv)[0], tf.shape(input=uv)[1]], dtype=tf.float32) / hparams["num_kp"]
 
-  for i in range(2):
-    loss_con += consistency_loss(uvz_proj[i][:, :, :2], uvz[1 - i][:, :, :2],
-                                 pconf)
-    loss_sep += separation_loss(
-        t.unproject(uvz[i])[:, :, :3], hparams["sep_delta"])
-
-  chordal, angular = relative_pose_loss(
-      t.unproject(uvz[0])[:, :, :3],
-      t.unproject(uvz[1])[:, :, :3], tf.matmul(mvi[0], mv[1]), pconf,
-      hparams["noise"])
-
   loss = (
-      hparams["loss_pose"] * angular +
-      hparams["loss_con"] * loss_con +
-      hparams["loss_sep"] * loss_sep +
-      hparams["loss_sill"] * loss_sill +
-      hparams["loss_lr"] * loss_lr +
-      hparams["loss_variance"] * loss_variance
+      hparams["loss_key"] * loss_key
   )
 
   def touint8(img):
@@ -578,13 +561,6 @@ def model_fn(features, labels, mode, hparams):
 
   with tf.compat.v1.variable_scope("stats"):
     tf.compat.v1.summary.scalar("anneal", anneal)
-    tf.compat.v1.summary.scalar("closs", loss_con)
-    tf.compat.v1.summary.scalar("seploss", loss_sep)
-    tf.compat.v1.summary.scalar("angular", angular)
-    tf.compat.v1.summary.scalar("chordal", chordal)
-    tf.compat.v1.summary.scalar("lrloss", loss_lr)
-    tf.compat.v1.summary.scalar("sill", loss_sill)
-    tf.compat.v1.summary.scalar("vloss", loss_variance)
 
   return {
       "loss": loss,
@@ -593,11 +569,6 @@ def model_fn(features, labels, mode, hparams):
           "img1": features["img1"],
           "uvz0": uvz[0],
           "uvz1": uvz[1]
-      },
-      "eval_metric_ops": {
-          "closs": tf.compat.v1.metrics.mean(loss_con),
-          "angular_loss": tf.compat.v1.metrics.mean(angular),
-          "chordal_loss": tf.compat.v1.metrics.mean(chordal),
       }
   }
 
@@ -606,9 +577,9 @@ def predict(input_folder, hparams):
   """Predicts keypoints on all images in input_folder."""
 
   cols = plt.cm.get_cmap("rainbow")(
-      np.linspace(0, 1.0, hparams["num_kp"]))[:, :4]
+      np.linspace(0, 1.0, hparams["num_kp"]))[:, :3]
 
-  img = tf.compat.v1.placeholder(tf.float32, shape=(1, 128, 128, 4))
+  img = tf.compat.v1.placeholder(tf.float32, shape=(1, vh, vw, 3))
 
   with tf.compat.v1.variable_scope("KeypointNetwork"):
     ret = keypoint_network(
@@ -634,8 +605,6 @@ def predict(input_folder, hparams):
 
   for f in files:
     orig = imageio.imread(os.path.join(input_folder, f)).astype(float) / 255
-    if orig.shape[2] == 3:
-      orig = np.concatenate((orig, np.ones_like(orig[:, :, :1])), axis=2)
 
     uv_ret = sess.run(uvz, feed_dict={img: np.expand_dims(orig, 0)})
 
@@ -650,19 +619,14 @@ def _default_hparams():
       "num_filters":64,  # Number of filters.
       "num_kp":21,  # Numer of keypoints.
 
-      "loss_pose":0.2,  # Pose Loss.
-      "loss_con":1.0,  # Multiview consistency Loss.
-      "loss_sep":1.0,  # Seperation Loss.
-      "loss_sill":1.0,  # Sillhouette Loss.
-      "loss_lr":1.0,  # Orientation Loss.
-      "loss_variance":0.5,  # Variance Loss (part of Sillhouette loss).
+      "loss_key":1,  # Pose Loss.
 
       "sep_delta":0.05,  # Seperation threshold.
       "noise":0.1,  # Noise added during estimating rotation.
 
-      "learning_rate":1.0e-3,
-      "lr_anneal_start":30000,  # When to anneal in the orientation prediction.
-      "lr_anneal_end":60000  # When to use the prediction completely.
+      "learning_rate":2.5e-2,
+      "lr_anneal_start":500,  # When to anneal in the orientation prediction.
+      "lr_anneal_end":1000  # When to use the prediction completely.
   }
   if FLAGS.hparams:
     hparams = hparams.parse(FLAGS.hparams)

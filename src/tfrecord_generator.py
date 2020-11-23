@@ -62,8 +62,8 @@ def generate_tfrecords():
         # print("keypoints encoded", keypoints_encoded.shape, keypoints_encoded.dtype)
 
         example = tf.train.Example(features=tf.train.Features(feature={
-            'left_img': bytes_feature(left_encoded.numpy()),
-            'right_img': bytes_feature(right_encoded.numpy()),
+            'img0': bytes_feature(left_encoded.numpy()),
+            'img1': bytes_feature(right_encoded.numpy()),
             'keypoints': tf.train.Feature(
                 float_list=tf.train.FloatList(value=keypoints_encoded.numpy()))
         }))
