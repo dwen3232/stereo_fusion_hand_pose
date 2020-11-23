@@ -155,10 +155,10 @@ As explained in the previous results section, the CNN did not get the results we
       <img src="./images/test4.png" alt="" style="width:100%">
     </div>
   </div>
-  <figcaption style="text-align: center;">Fig 6. Training and testing keypont projections.</figcaption>
+  <figcaption style="text-align: center;">Fig 6. Training and testing keypoint projections.</figcaption>
 </figure>
 <br>
-As shown, this issue pervaded across the training and testing datasets and left and right images. While there was a visible correspondence between the points predicted and the image, they were off the correct location by a similar amount for each image. We couldn’t conclusively determine that this systematic error was due to projection, but we believe that is the case because it was independent of how much we optimized the model and was one of the largest differences between X. Liu et al.’s work and S. Suwajanakorn. et al.’s work. 
+As shown, this issue pervaded across the training and testing datasets and left and right images. While there was a visible correspondence between the points predicted and the image, they were off the correct location by a similar amount for each image. We couldn’t conclusively determine that this systematic error was due to projection, but we believe that is the case because it was independent of how much we optimized the model and was one of the largest differences between X. Liu et al.’s work and S. Suwajanakorn. et al.’s work. Moreover, most of the keypoints landed either at the edge or outside of the image.
 Unfortunately, despite several attempts to fix things, due to our computational limitations and limited knowledge in this area, each attempt took a long time and we could not find a valid solution to this problem. Thus, these were the best results that we could get.
 
 
