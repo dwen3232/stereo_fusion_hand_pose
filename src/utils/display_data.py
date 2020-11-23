@@ -4,7 +4,7 @@ import re
 import numpy as np
 import cv2
 import scipy.io
-from matrices import P_matrix, apply_homogeneous_transform, reduce_homogeneous
+from utils.matrices import P_matrix, apply_homogeneous_transform, reduce_homogeneous
 
 def _circle_uv_points(img, uvs):
 	# uv should be (2, N) array
