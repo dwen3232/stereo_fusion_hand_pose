@@ -2,8 +2,7 @@
 <html lang="en"><head>  
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
-  <title>Computer Vision Class Project
-  | ECE, Virginia Tech | Fall 2015: ECE 5554/4984</title>
+  <title>Computer Vision Class Project | Georgia Tech | Fall 2020: CS4476</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="">
   <meta name="author" content="">
@@ -35,7 +34,7 @@ color: #FF9900;
 
 <!-- Title and Name --> 
 <h1>Hand Pose Estimation by Fusion of Multi-View Images</h1> 
-<span style="font-size: 20px; line-height: 1.5em;"><strong>Avinash Vemuri, David Wen, Tan Gemicioglu</strong></span><br>
+<span style="font-size: 20px; line-height: 1.5em;"><strong>David Wen, Tan Gemicioglu, Avinash Vemuri</strong></span><br>
 <span style="font-size: 18px; line-height: 1.5em;">Fall 2020 CS4476 Project</span><br>
 <span style="font-size: 18px; line-height: 1.5em;">Georgia Tech</span>
 <hr>
@@ -86,14 +85,19 @@ For the training of the model, we use the three loss functions as shown in the f
   <figcaption style="text-align: center;">Fig 4. Loss function proposed by X. Liu et al. in [3]</figcaption>
 </figure>
 <br>
-The first term is the traditional loss function, where the error is the squared error between the computed UVD and the labeled UVD.  The second term is the squared error between the reprojection of the predicted UVD keypoints and the labeled UVD keypoints.  The third term is the locality loss of the predicted UVD keypoints and the labeled UVD keypoints, using the inverse normal distribution centered at the labeled UVD and the probability of UVD in the generated probability map.  Optimal weights for the last two terms will be determined by future experimentation.
+The first term is the traditional loss function, where the error is the squared error between the computed UVD and the labeled UVD.  The second term is the squared error between the reprojection of the predicted UVD keypoints and the labeled UVD keypoints.  The third term is the locality loss of the predicted UVD keypoints and the labeled UVD keypoints, using the inverse normal distribution centered at the labeled UVD and the probability of UVD in the generated probability map.
+<br><br>
+Unfortunately, due to our computational and time constraints, we were unable to get convergent results while using all of these loss functions and could not further tune them. Instead, we used only L_kp, the mean squared error between predicted and actual keypoints.
+Due to the limitations in the information from X. Liu et al. we based our code primarily on work by S. Suwajanakorn et al. [6] which used Tensorflow 1 and was a project with different approaches to many things. We tried to change it to work with something more similar to X. Liu’s described pipeline but it did not go as we had hoped, as can be seen in our results section.
+
 
 <br><br>
 <!-- Experiment and Results -->
 <h3>Experiment and Results</h3>
-We used the dataset provided in source [2]. The data set is made up of 18,000 stereo image pairs and 18,000 depth images taken in 6 different scenarios and the ground-truth 3D positions of the palm and finger joints.  Currently, the deep CNN model is a work in progress, so we do not have any numerical results or metrics.  In the future, we plan on testing our models reliability in placing keypoints on hands in a variety of backgrounds and lighting. 
+We used the dataset provided in source [2]. The dataset is made up of 18,000 stereo image pairs and 18,000 depth images taken in 6 different scenarios and the ground-truth 3D positions of the palm and finger joints.  As the training proved slower than expected, we limited ourselves to only to smaller subsets of this dataset. For our experimentation, we trained, validated, and tested using the B1Counting subset of the J. Zhang et al. dataset.  The subset, containing a total of 1,500 image pairs, was split into three partitions: 1000 for training, 250 for validation, and 250 for testing.  
 <br><br>
-For our future experimentation, we are planning on doing a traditional 60/20/20 split for the dataset with 60% in our training set, 20% in validation, and 20% in testing. Additionally, we believe it will be a useful experiment for generalization to use the 6 different background scenes in our dataset by doing 6-fold cross validation with training on 5 scenes and testing on 1 scene.
+During our attempts, the experiment always converged while there was still a high loss. Our best trial had a total of 1e+5 MSE loss between keypoints. This affected both training and testing, and we could not solve this systematic error. As our goal was estimation rather than classification, we do not have any results with regard to how many keypoints were correctly placed. Therefore, we believe our qualitative results are the best way to demonstrate where our model worked, and the problems that caused it to not work as intended.
+
 
 
 <br><br>
@@ -126,16 +130,50 @@ For the preprocessing step, the results for the skin segmentation for select ima
 </figure>
 
 <br>
-Currently, the skin segmentation method does not handle passive lighting very well (as shown in the third image in Fig 5.).  For the other environments, the hand is preserved fairly well.  Other skin features, such as the face of the researcher (in images 1-3 of Fig 5.) are moderately preserved and may affect the model, and additional preprocessing steps to remove the face may be beneficial.  Common to all the skin segmentations is the abundance of holes and noise in the resultant images.  Further preprocessing steps to eliminate holes and noise from the binary image mask either through some combination of dilation and erosion or contour filling will be added to further improve the robustness of the segmentation in different backgrounds and lighting conditions.
+Currently, the skin segmentation method does not handle passive lighting very well (as shown in the third image in Fig 5.).  For the other environments, the hand is preserved fairly well.  Other skin features, such as the face of the researcher (in images 1-3 of Fig 5.) are moderately preserved and may affect the model, and additional preprocessing steps to remove the face may be beneficial.  Common to all the skin segmentations is the abundance of holes and noise in the resultant images.  A few additional steps adding random saturation and brightness were performed before the segmentation process to import robustness, as well as morphological dilation and erosion to the segmentation mask before its application to the training images.
+<br><br>
+As explained in the previous results section, the CNN did not get the results we expected. We suspect that our inability to get the CNN to converge to a better result was due to a systematic error caused by our projection. Sample outputs with keypoints projected onto the image are shown below:
+<br>
+<figure style="text-align: center;">
+  <div class="row">
+    <div class="column">
+      <img src="./images/train1.png" alt="" style="width:100%">
+    </div>
+    <div class="column">
+      <img src="./images/train2.png" alt="" style="width:100%">
+    </div>
+    <div class="column">
+      <img src="./images/test1.png" alt="" style="width:100%">
+    </div>
+    <div class="column">
+      <img src="./images/test2.png" alt="" style="width:100%">
+    </div>
+    <div class="column">
+      <img src="./images/test3.png" alt="" style="width:100%">
+    </div>
+    <div class="column">
+      <img src="./images/test4.png" alt="" style="width:100%">
+    </div>
+  </div>
+  <figcaption style="text-align: center;">Fig 6. Training and testing keypont projections.</figcaption>
+</figure>
+<br>
+As shown, this issue pervaded across the training and testing datasets and left and right images. While there was a visible correspondence between the points predicted and the image, they were off the correct location by a similar amount for each image. We couldn’t conclusively determine that this systematic error was due to projection, but we believe that is the case because it was independent of how much we optimized the model and was one of the largest differences between X. Liu et al.’s work and S. Suwajanakorn. et al.’s work. 
+Unfortunately, despite several attempts to fix things, due to our computational limitations and limited knowledge in this area, each attempt took a long time and we could not find a valid solution to this problem. Thus, these were the best results that we could get.
+
 
 <br><br>
 <!-- Conclusion and Future Work  -->
 <h3>Conclusion and Future Work</h3>
-With this project, we investigated a stereoscopic vision alternative to the current dominant paradigms of single RGB or RGBD cameras in hand pose estimation. We made use of new ideas in object recognition that use neural networks instead of geometric calculation to gain more information from the stereoscopic fusion of two images. We hope that this approach will make techniques that utilize hand pose estimation more accessible by reducing the need for costly equipment and more accurate by utilizing stereoscopic information. 
+With this project, we investigated a stereoscopic vision alternative to the current dominant paradigms of single RGB or RGBD cameras in hand pose estimation. We made use of new ideas in object recognition that use neural networks instead of geometric calculation to gain more information from the stereoscopic fusion of two images. 
+<br><br>
+Our models had higher batch sizes, were trained with an order of magnitude less steps than other similar experiments using CNNs for keypoint detection and omitted the second cycle of growing dilated convolutions that most other works have done in the past. While these managed to reduce our training time to a reasonable length, testing remained difficult. We believe that such issues, combined with the lack of well-documented projects in applications of CNNs beyond image classification make it hard to make end-to-end models in developing areas like pose estimation.
 <br><br>
 At the moment, datasets for stereoscopic vision in hand pose estimation are very limited. For future work, larger datasets with more variation in scene as well as artificially generated images could help make better models. The dataset we used made use of a stereoscopic camera, which is a far more controlled condition than doing stereoscopic fusion for two different cameras. Cameras with varying degrees of overlap and different configurations would be useful in making it easier to deploy stereoscopic vision at the consumer level.
 <br><br>
-We also investigated different preprocessing techniques, and further work on different preprocessing approaches as well as neural network approaches could lead to further improvements in this area. Finally, we believe that the most critical improvement for hand pose estimation with stereoscopic vision would be in making models as light and fast as possible for them to work with real time videos across several cameras.
+We also investigated different preprocessing techniques, and further work on different preprocessing approaches as well as neural network approaches could lead to further improvements in this area. Finally, we believe that the most critical improvement for hand pose estimation with stereoscopic vision would be in making models lighter, faster and more efficient for them to be reproducible and work with real time videos across several cameras.
+<br><br>
+While we could not get the results that we expected, this was an interesting project to apply CNNs in a new area. We hope that our attempts, although falling short, will provide a useful starter for future work. We hope that documentation for papers will improve just as it has improved for the main libraries in machine learning areas. Reproducibility is currently very difficult in computer vision due to both a lack of documented projects and overwhelming hardware requirements. For further conduct of research in this field, we believe that overcoming such problems is critical, and hope future projects will fare better.
 
 <br><br>
 <!-- References -->
@@ -154,7 +192,10 @@ We also investigated different preprocessing techniques, and further work on dif
     <p>F. Zhang, V. Bazarevsky, A. Vakunov, A. Tkachenka, G. Sung, C.-L. Chang, and M. Grundmann, “MediaPipe Hands: On-device Real-time Hand Tracking,” <cite><a href="https://arxiv.org/abs/2006.10214">arXiv:2006.10214</a></cite> [cs], Jun. 2020.</p>
   </li>
   <li>
-      <p>R. F. Rahmat, T. Chairunnisa, D. Gunawan and O. S. Sitompul, "Skin color segmentation using multi-color space threshold," 2016 3rd International Conference on Computer and Information Sciences (ICCOINS), Kuala Lumpur, 2016, pp. 391-396, doi: 10.1109/ICCOINS.2016.7783247.</p>
+    <p>R. F. Rahmat, T. Chairunnisa, D. Gunawan and O. S. Sitompul, "Skin color segmentation using multi-color space threshold," 2016 3rd International Conference on Computer and Information Sciences (ICCOINS), Kuala Lumpur, 2016, pp. 391-396, doi: 10.1109/ICCOINS.2016.7783247.</p>
+  </li>
+  <li>
+    <p>S. Suwajanakorn, N. Snavely, J. Tompson, and M. Norouzi, "Discovery of Latent 3D Keypoints via End-to-end Geometric Reasoning," <cite><a href="https://arxiv.org/pdf/1807.03146.pdf">arXiv:1807.03146</a></cite> [cs], Nov. 2018.</p>
   </li>
 </ol>
 
